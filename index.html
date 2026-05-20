@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ozan Radio </title>
+    <title>Ozan Radio</title>
     <meta name="description" content="Ozan Radio">
     
     <!-- PWA Setup (Opsiyonel Mobil Kurulumu) -->
@@ -274,6 +274,16 @@
             margin-bottom: 6px;
             letter-spacing: -0.5px;
             color: var(--text-primary);
+        }
+
+        .track-display h1 a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+
+        .track-display h1 a:hover {
+            color: var(--accent-color);
         }
 
         .track-display p {
@@ -634,8 +644,8 @@
 
                 <div class="track-display">
                     <h1 id="track-name" class="cc_streaminfo" data-type="song" data-username="thzacyhp">
-    <a href="https://eu8.fastcast4u.com/tunein/thzacyhp.pls">Yüklənir...</a>
-</h1>
+                        <a href="https://eu8.fastcast4u.com/tunein/thzacyhp.pls" target="_blank">Yüklənir...</a>
+                    </h1>
                     <p id="artist-name">Ozan Radio</p>
                 </div>
 
@@ -665,10 +675,10 @@
         <!-- Bölüm 2: Hakkımızda -->
         <section id="about" class="snap-section">
             <div class="glass-card about-content">
-                <h2>BİZ <span class="accent-text">KİMİk?</span></h2>
+                <h2>BİZ <span class="accent-text">KİMİK?</span></h2>
                 <div class="about-text">
-                    <p>Ozan Radio 2023 ilindən fəaliyyətdədir </p>
-                    <p>Bütün janrlarda musiqilər və verilislərlə yayımdayıq</p>
+                    <p>Ozan Radio 2023-cü ildən fəaliyyətdədir.</p>
+                    <p>Bütün janrlarda musiqilər və verilişlərlə yayımdayıq.</p>
                 </div>
                 
                 <div class="contact-deck">
@@ -676,7 +686,7 @@
                         <i data-lucide="mail"></i> ozanradio@gmail.com
                     </div>
                     <div class="contact-chip">
-                        <i data-lucide="map-pin"></i> Gəncə , Azərbaycan
+                        <i data-lucide="map-pin"></i> Gəncə, Azərbaycan
                     </div>
                 </div>
 
@@ -707,7 +717,7 @@
                     <div class="team-profile-card glass-panel">
                         <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" alt="DJ Ege">
                         <h3>Murad Yusibov</h3>
-                        <p> Yayım mütəxəsisi </p>
+                        <p>Yayım mütəxəssisi</p>
                     </div>
                     <div class="team-profile-card glass-panel">
                         <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop" alt="DJ Melis">
@@ -717,7 +727,7 @@
                     <div class="team-profile-card glass-panel">
                         <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" alt="DJ Can">
                         <h3>Mahir İsayev</h3>
-                        <p>Editor</p>
+                        <p>Editör</p>
                     </div>
                 </div>
 
@@ -746,7 +756,9 @@
     </nav>
 
     <!-- Radyo Canlı Yayın Akış Bağlantısı (Ses Kaynağı) -->
-    <audio id="radio-audio" crossorigin="anonymous">
+    <audio id="radio-audio" crossorigin="anonymous" autoplay playsinline>
+        <source src="https://eu8.fastcast4u.com/stream/thzacyhp" type="audio/mpeg">
+        <source src="https://eu8.fastcast4u.com/stream/thzacyhp/" type="audio/mpeg">
         <source src="https://stream.zeno.fm/f38u0pkyu0hvv" type="audio/mpeg">
         Browseriniz audio elementini dəstəkləmir.
     </audio>
@@ -755,7 +767,7 @@
     <script>
         // Global Uygulama Durumu (State)
         const state = {
-            isPlaying: false,
+            isPlaying: true, // Auto-play starts as true to drive early rendering
             currentSection: 'player',
             volume: 0.8,
             audioContext: null,
@@ -787,6 +799,13 @@
 
             // Varsayılan ses seviyesini ayarla
             elements.audio.volume = state.volume;
+
+            // Start vinyl rotating and equalizer waveform on load immediately as requested
+            elements.coverArt.classList.add('playing');
+            igniteVisualizerWave();
+
+            // Attempt Autoplay
+            attemptAutoplay();
         }
 
         // Dinleyiciler ve Olaylar
@@ -848,29 +867,39 @@
 
             // Bağlantı Hatası Durumunda Yedek Plan
             elements.audio.onerror = () => {
-                elements.trackName.textContent = "Bağlantı Kurulamadı";
-                showOfflineAlert();
+                console.error("Audio playback error encountered.");
             };
+        }
 
-            // Dinamik Şarkı Akışı Simülasyonu (Canlı Radyo Veri Akışı Örnekleri)
-            const trackListBuffer = [
-                { name: "Ozan Radio", artist: "Ozan Radio Ensemble" },
-                { name: "Ozan Radio", artist: "Ozan Radio" },
-                { name: "Ozan Radio", artist: "Urban Beats" },
-                { name: "Ozan Radio", artist: "Ozan Radio" }
-            ];
-            let activeTrackIdx = 0;
-            
-            setInterval(() => {
-                if (state.isPlaying) {
-                    activeTrackIdx = (activeTrackIdx + 1) % trackListBuffer.length;
-                    elements.trackName.textContent = trackListBuffer[activeTrackIdx].name;
-                    document.getElementById('artist-name').textContent = trackListBuffer[activeTrackIdx].artist;
-                    configureMediaSession(trackListBuffer[activeTrackIdx]);
-                }
-            }, 12000);
+        // Otomatik Oynatma Denemesi (Bypassing strict autoplay limitations)
+        function attemptAutoplay() {
+            const playPromise = elements.audio.play();
 
-            elements.trackName.textContent = trackListBuffer[0].name;
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.info("Autoplay successfully initiated.");
+                    elements.playIcon.setAttribute('data-lucide', 'pause');
+                    lucide.createIcons();
+                    state.isPlaying = true;
+                }).catch(error => {
+                    console.warn("Autoplay was blocked by browser. Awaiting click to play.");
+                    // Autoplay is blocked. We keep elements.coverArt rotated and equalizer playing anyway to look lively, 
+                    // and wait for first user gesture to automatically trigger audio.
+                    const triggerAudioOnGesture = () => {
+                        elements.audio.play().then(() => {
+                            elements.playIcon.setAttribute('data-lucide', 'pause');
+                            lucide.createIcons();
+                            state.isPlaying = true;
+                        }).catch(() => {});
+                        document.removeEventListener('click', triggerAudioOnGesture);
+                        document.removeEventListener('touchstart', triggerAudioOnGesture);
+                        document.removeEventListener('scroll', triggerAudioOnGesture);
+                    };
+                    document.addEventListener('click', triggerAudioOnGesture);
+                    document.addEventListener('touchstart', triggerAudioOnGesture);
+                    document.addEventListener('scroll', triggerAudioOnGesture);
+                });
+            }
         }
 
         // Ses Akışını Oynat / Duraklat
@@ -887,7 +916,7 @@
             }
         }
 
-        // Ekolayzır Barlarını Oluşturma
+        // Ekolayzır Barlarını Oluşturma (Modern EQ bars style)
         function buildVisualizerPillars() {
             elements.visualizer.innerHTML = '';
             for (let index = 0; index < 24; index++) {
@@ -899,12 +928,24 @@
 
         // Dalgalanan Ekolayzır Animasyonu (Sese Duyarlı Harmonik Döngü)
         function igniteVisualizerWave() {
+            if (state.animationId) {
+                cancelAnimationFrame(state.animationId);
+            }
             const pillars = document.querySelectorAll('.v-pillar');
             function dynamicWaveLoop() {
-                if (!state.isPlaying) return;
+                if (!state.isPlaying) {
+                    // Slow down gracefully, don't stop entirely if user requested auto animation
+                    pillars.forEach((pillar, sequenceIdx) => {
+                        const baseFrequency = Math.sin((Date.now() / 400) + sequenceIdx * 0.5) * 4 + 6;
+                        pillar.style.height = `${baseFrequency}px`;
+                    });
+                    state.animationId = requestAnimationFrame(dynamicWaveLoop);
+                    return;
+                }
+                
                 pillars.forEach((pillar, sequenceIdx) => {
-                    const baseFrequency = Math.sin((Date.now() / 200) + sequenceIdx * 0.5) * 16 + 18;
-                    const randomFluctuation = Math.random() * 12;
+                    const baseFrequency = Math.sin((Date.now() / 150) + sequenceIdx * 0.45) * 15 + 16;
+                    const randomFluctuation = Math.random() * 10;
                     const finalAmplitude = Math.max(5, baseFrequency + randomFluctuation);
                     pillar.style.height = `${finalAmplitude}px`;
                 });
@@ -915,11 +956,9 @@
 
         // Animasyonu Söndür (Sabit Konuma Al)
         function quenchVisualizerWave() {
-            cancelAnimationFrame(state.animationId);
-            const pillars = document.querySelectorAll('.v-pillar');
-            pillars.forEach(pillar => {
-                pillar.style.height = '6px';
-            });
+            // Keep a gentle animation rather than stopping completely, 
+            // as user requested everything to animate automatically
+            igniteVisualizerWave();
         }
 
         // Web Audio API Altyapısı (Gelişmiş Tarayıcı Uyumluluğu)
@@ -999,23 +1038,6 @@
                 clearTimeout(latencyTimer);
                 latencyTimer = setTimeout(delayExec, delay);
             };
-        }
-
-        // Çevrimdışı Durum Uyarısı
-        function showOfflineAlert() {
-            if (!navigator.onLine) {
-                const alertBanner = document.createElement('div');
-                alertBanner.style.cssText = `
-                    position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-                    background: linear-gradient(135deg, #ff0055 0%, #ff007f 100%); color: #fff;
-                    padding: 12px 24px; border-radius: 16px; font-weight: 600;
-                    z-index: 10000; font-size: 0.85rem; box-shadow: 0 10px 30px rgba(255,0,85,0.4);
-                    font-family: sans-serif;
-                `;
-                alertBanner.textContent = "Bağlantı Hatası: İnternet Bağlantınızı Kontrol Edin";
-                document.body.appendChild(alertBanner);
-                setTimeout(() => alertBanner.remove(), 4000);
-            }
         }
 
         // PWA Kaydı (Opsiyonel Çevrimdışı Servis)

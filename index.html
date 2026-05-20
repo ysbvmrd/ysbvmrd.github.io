@@ -842,7 +842,7 @@
     </nav>
 
     <!-- Radyo Canlı Yayın Akış Bağlantısı (Ses Kaynağı) -->
-    <audio id="radio-audio" src="https://eu8.fastcast4u.com/proxy/thzacyhp/stream.pls" autoplay playsinline>
+    <audio id="radio-audio" src="https://eu8.fastcast4u.com/proxy/thzacyhp/stream" autoplay playsinline>
         Browseriniz audio elementini dəstəkləmir.
     </audio>
 
@@ -997,7 +997,6 @@
                 if (elements.audio.paused) {
                     state.userInitiatedPause = false;
                     await elements.audio.play();
-                    if (!state.audioContext) bootWebAudioAPIContext();
                 } else {
                     state.userInitiatedPause = true;
                     elements.audio.pause();
@@ -1051,18 +1050,9 @@
             igniteVisualizerWave();
         }
 
-        // Web Audio API Altyapısı (Gelişmiş Tarayıcı Uyumluluğu)
+        // Web Audio API Altyapısı (CORS Engelleri sebebiyle simüle edilmiş ekolayzır tercih edilmiştir)
         function bootWebAudioAPIContext() {
-            try {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                state.audioContext = new AudioContextClass();
-                const source = state.audioContext.createMediaElementSource(elements.audio);
-                state.analyser = state.audioContext.createAnalyser();
-                source.connect(state.analyser);
-                state.analyser.connect(state.audioContext.destination);
-            } catch (err) {
-                console.info("Simüle edilmiş ekolayzır aktif.");
-            }
+            console.info("Simüle edilmiş ekolayzır aktif.");
         }
 
         // Akıcı Sayfa Kaydırma Tetikleyicisi

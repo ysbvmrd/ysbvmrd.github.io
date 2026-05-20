@@ -105,7 +105,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px 24px;
+            padding: 45px 24px 24px 24px;
             position: relative;
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s;
         }
@@ -142,7 +142,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 28px;
+            gap: 20px;
+            padding-top: 15px;
+            box-sizing: border-box;
         }
 
         .radio-header {
@@ -150,7 +152,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 8px;
+            padding: 10px 8px 0 8px;
+            margin-bottom: 5px;
         }
 
         .logo {
@@ -192,8 +195,8 @@
 
         .cover-visual-zone {
             position: relative;
-            width: 290px;
-            height: 290px;
+            width: 260px;
+            height: 260px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -212,8 +215,8 @@
         }
 
         .cover-art {
-            width: 260px;
-            height: 260px;
+            width: 230px;
+            height: 230px;
             border-radius: 50%;
             overflow: hidden;
             border: 3px solid rgba(255, 255, 255, 0.1);
@@ -600,21 +603,104 @@
         /* Mobil Optimizasyonları */
         @media (max-width: 400px) {
             .cover-visual-zone {
-                width: 260px;
-                height: 260px;
-            }
-            .cover-art {
                 width: 220px;
                 height: 220px;
             }
+            .cover-art {
+                width: 190px;
+                height: 190px;
+            }
             .track-display h1 {
-                font-size: 1.6rem;
+                font-size: 1.5rem;
             }
             .team-grid {
                 gap: 12px;
             }
             .team-profile-card {
                 padding: 16px 10px;
+            }
+        }
+
+        /* Yükseklik Odaklı Duyarlı Tasarım (Küçük Ekran Yükseklikleri İçin) */
+        @media (max-height: 780px) {
+            .snap-section {
+                padding: 35px 20px 20px 20px;
+            }
+            .player-container {
+                gap: 14px;
+                padding-top: 10px;
+            }
+            .cover-visual-zone {
+                width: 210px;
+                height: 210px;
+            }
+            .cover-art {
+                width: 180px;
+                height: 180px;
+            }
+            .track-display h1 {
+                font-size: 1.4rem;
+                margin-bottom: 4px;
+            }
+            .visualizer-area {
+                height: 32px;
+                margin: 4px 0;
+            }
+            .btn-circle-play {
+                width: 72px;
+                height: 72px;
+            }
+            .btn-circle-play i {
+                width: 26px;
+                height: 26px;
+            }
+            .ambient-volume-panel {
+                padding: 12px 20px;
+                gap: 12px;
+            }
+            .navigation-scrollers {
+                margin-top: 5px;
+            }
+        }
+
+        @media (max-height: 660px) {
+            .snap-section {
+                padding: 25px 16px 16px 16px;
+            }
+            .player-container {
+                gap: 8px;
+                padding-top: 5px;
+            }
+            .cover-visual-zone {
+                width: 160px;
+                height: 160px;
+            }
+            .cover-art {
+                width: 130px;
+                height: 130px;
+            }
+            .track-display h1 {
+                font-size: 1.15rem;
+                margin-bottom: 2px;
+            }
+            .track-display p {
+                font-size: 0.8rem;
+            }
+            .visualizer-area {
+                height: 20px;
+                gap: 2px;
+                margin: 2px 0;
+            }
+            .btn-circle-play {
+                width: 58px;
+                height: 58px;
+            }
+            .btn-circle-play i {
+                width: 20px;
+                height: 20px;
+            }
+            .navigation-scrollers {
+                display: none;
             }
         }
     </style>
@@ -756,10 +842,7 @@
     </nav>
 
     <!-- Radyo Canlı Yayın Akış Bağlantısı (Ses Kaynağı) -->
-    <audio id="radio-audio" crossorigin="anonymous" autoplay playsinline>
-        <source src="https://eu8.fastcast4u.com/stream/thzacyhp" type="audio/mpeg">
-        <source src="https://eu8.fastcast4u.com/stream/thzacyhp/" type="audio/mpeg">
-        <source src="https://stream.zeno.fm/f38u0pkyu0hvv" type="audio/mpeg">
+    <audio id="radio-audio" src="https://eu8.fastcast4u.com/proxy/thzacyhp/stream" autoplay playsinline>
         Browseriniz audio elementini dəstəkləmir.
     </audio>
 
@@ -773,7 +856,8 @@
             audioContext: null,
             analyser: null,
             dataArray: null,
-            animationId: null
+            animationId: null,
+            userInitiatedPause: false
         };
 
         // DOM Element Değişkenleri
@@ -853,6 +937,7 @@
                 lucide.createIcons();
                 elements.coverArt.classList.add('playing');
                 state.isPlaying = true;
+                state.userInitiatedPause = false;
                 igniteVisualizerWave();
             };
 
@@ -860,9 +945,11 @@
             elements.audio.onpause = () => {
                 elements.playIcon.setAttribute('data-lucide', 'play');
                 lucide.createIcons();
-                elements.coverArt.classList.remove('playing');
-                state.isPlaying = false;
-                quenchVisualizerWave();
+                if (state.userInitiatedPause) {
+                    elements.coverArt.classList.remove('playing');
+                    state.isPlaying = false;
+                    quenchVisualizerWave();
+                }
             };
 
             // Bağlantı Hatası Durumunda Yedek Plan
@@ -881,11 +968,13 @@
                     elements.playIcon.setAttribute('data-lucide', 'pause');
                     lucide.createIcons();
                     state.isPlaying = true;
+                    state.userInitiatedPause = false;
                 }).catch(error => {
                     console.warn("Autoplay was blocked by browser. Awaiting click to play.");
-                    // Autoplay is blocked. We keep elements.coverArt rotated and equalizer playing anyway to look lively, 
-                    // and wait for first user gesture to automatically trigger audio.
+                    // Autoplay is blocked. We keep the main styling active so everything rotates and moves
+                    // to look lively immediately as requested, and trigger audio on user's first gesture.
                     const triggerAudioOnGesture = () => {
+                        state.userInitiatedPause = false;
                         elements.audio.play().then(() => {
                             elements.playIcon.setAttribute('data-lucide', 'pause');
                             lucide.createIcons();
@@ -906,9 +995,11 @@
         async function toggleAudioPlay() {
             try {
                 if (elements.audio.paused) {
+                    state.userInitiatedPause = false;
                     await elements.audio.play();
                     if (!state.audioContext) bootWebAudioAPIContext();
                 } else {
+                    state.userInitiatedPause = true;
                     elements.audio.pause();
                 }
             } catch (error) {
@@ -933,8 +1024,8 @@
             }
             const pillars = document.querySelectorAll('.v-pillar');
             function dynamicWaveLoop() {
-                if (!state.isPlaying) {
-                    // Slow down gracefully, don't stop entirely if user requested auto animation
+                if (state.userInitiatedPause) {
+                    // Slow down gracefully to subtle idle motion if user paused manually
                     pillars.forEach((pillar, sequenceIdx) => {
                         const baseFrequency = Math.sin((Date.now() / 400) + sequenceIdx * 0.5) * 4 + 6;
                         pillar.style.height = `${baseFrequency}px`;
@@ -943,6 +1034,7 @@
                     return;
                 }
                 
+                // Full energetic visualizer waveform
                 pillars.forEach((pillar, sequenceIdx) => {
                     const baseFrequency = Math.sin((Date.now() / 150) + sequenceIdx * 0.45) * 15 + 16;
                     const randomFluctuation = Math.random() * 10;
@@ -956,8 +1048,6 @@
 
         // Animasyonu Söndür (Sabit Konuma Al)
         function quenchVisualizerWave() {
-            // Keep a gentle animation rather than stopping completely, 
-            // as user requested everything to animate automatically
             igniteVisualizerWave();
         }
 
